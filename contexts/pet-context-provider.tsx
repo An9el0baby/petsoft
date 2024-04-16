@@ -7,6 +7,7 @@ type PetContextType = {
   pets: Pet[];
   selectedPetId: string | null;
   selectedPet: Pet | undefined;
+  numberOfPets: number;
   handleChangeSelectedPet: (id: string) => void;
 };
 
@@ -26,6 +27,7 @@ export default function PetContextProvider({
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   // derived state
   const selectedPet = pets.find((pet) => pet.id === selectedPetId);
+  const numberOfPets = pets.length;
 
   // event handlers
   const handleChangeSelectedPet = (id: string) => {
@@ -38,6 +40,7 @@ export default function PetContextProvider({
         pets,
         selectedPetId,
         selectedPet,
+        numberOfPets,
         handleChangeSelectedPet,
       }}
     >
