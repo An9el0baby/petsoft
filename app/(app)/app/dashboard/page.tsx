@@ -5,17 +5,7 @@ import PetList from "@/components/pet-list";
 import SearchForm from "@/components/search-form";
 import Stats from "@/components/stats";
 
-export default function Page() {
-  // const response = await fetch(
-  //   "https://bytegrad.com/course-assets/projects/petsoft/api/pets"
-  // );
-
-  // if (!response.ok) {
-  //   throw new Error("Failed to fetch pets");
-  // }
-  // const data = response.json();
-  // console.log(data);
-
+export default async function Page() {
   return (
     <main>
       <div className="flex items-center justify-between text-white py-8">
