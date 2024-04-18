@@ -10,9 +10,11 @@ import {
 } from "./ui/dialog";
 import PetForm from "./pet-form";
 import { useState } from "react";
+import { flushSync } from "react-dom";
 
 type PetButtonProps = {
   actionType: "add" | "edit" | "checkout";
+  disabled?: boolean;
   onClick?: () => void;
   children?: React.ReactNode;
 };
@@ -21,12 +23,13 @@ export default function PetButton({
   actionType,
   children,
   onClick,
+  disabled,
 }: PetButtonProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   if (actionType === "checkout") {
     return (
-      <Button variant="secondary" onClick={onClick}>
+      <Button variant="secondary" disabled={disabled} onClick={onClick}>
         {children}
       </Button>
     );
@@ -50,7 +53,13 @@ export default function PetButton({
         </DialogHeader>
         <PetForm
           actionType={actionType}
-          onFormSubmission={() => setIsFormOpen(false)}
+          onFormSubmission={() => {
+            // react will batch these updates, so we need to flush the sync
+            // to ensure the dialog closes after the form submission
+            flushSync(() => {
+              setIsFormOpen(false);
+            });
+          }}
         />
       </DialogContent>
     </Dialog>

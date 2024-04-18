@@ -1,10 +1,10 @@
 "use client";
 
 import { usePetContext } from "@/lib/hooks";
-import { Pet } from "@/lib/types";
 import Image from "next/image";
-import React from "react";
+// import { useTransition } from "react";
 import PetButton from "./pet-button";
+import { Pet } from "@prisma/client";
 
 export default function PetDetails() {
   const { selectedPet } = usePetContext();
@@ -29,6 +29,9 @@ type Props = {
 };
 
 function TopBar({ pet }: Props) {
+  // used to keep track of the pending state of the delete server action
+  // const [isPending, startTransition] = useTransition();
+
   const { handleCheckoutPet } = usePetContext();
 
   return (
@@ -45,7 +48,8 @@ function TopBar({ pet }: Props) {
         <PetButton actionType="edit">Edit</PetButton>
         <PetButton
           actionType="checkout"
-          onClick={() => handleCheckoutPet(pet.id)}
+          onClick={async () => await handleCheckoutPet(pet?.id)}
+          // disabled={isPending}
         >
           Checkout
         </PetButton>
