@@ -5,14 +5,9 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import PetFormBtn from "./pet-form-btn";
 import { useForm } from "react-hook-form";
-
-type petFormType = {
-  name: string;
-  ownerName: string;
-  imageUrl: string;
-  age: number;
-  notes: string;
-};
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_PET_IMAGE } from "@/lib/constants";
+import { petFormSchema, petFormType } from "@/lib/validations";
 
 export default function PetForm({
   actionType,
@@ -25,23 +20,31 @@ export default function PetForm({
 
   const {
     register,
+    trigger,
+    getValues,
     formState: { isSubmitting, errors },
-  } = useForm<petFormType>();
+  } = useForm<petFormType>({
+    resolver: zodResolver(petFormSchema),
+    defaultValues: {
+      name: selectedPet?.name,
+      ownerName: selectedPet?.ownerName,
+      imageUrl: selectedPet?.imageUrl,
+      age: selectedPet?.age,
+      notes: selectedPet?.notes,
+    },
+  });
 
   return (
     <form
       className="flex flex-col"
-      action={async (formData) => {
+      action={async () => {
+        // trigger validation
+        const result = await trigger();
+        if (!result) return;
         onFormSubmission();
-        const petData = {
-          name: formData.get("name") as string,
-          ownerName: formData.get("ownerName") as string,
-          imageUrl:
-            (formData.get("imageUrl") as string) ||
-            "https://bytegrad.com/course-assets/react-nextjs/pet-placeholder.png",
-          age: Number(formData.get("age")),
-          notes: formData.get("notes") as string,
-        };
+
+        const petData = getValues();
+        petData.imageUrl = petData.imageUrl || DEFAULT_PET_IMAGE;
 
         if (actionType === "add") {
           handleAddPet(petData);
