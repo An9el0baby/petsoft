@@ -1,7 +1,8 @@
 import NextAuth, { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import prisma from "./db";
 import bcrypt from "bcryptjs";
+import { getUserByEmail } from "./server-util";
+import { authFormSchema } from "./validations";
 
 const config = {
   pages: {
@@ -15,13 +16,15 @@ const config = {
     Credentials({
       async authorize(credentials) {
         // runs on login
-        const { email, password } = credentials;
+        // validate credentials
+        const validatedCredentials = authFormSchema.safeParse(credentials);
+        if (!validatedCredentials.success) {
+          return null;
+        }
+        // extract email and password
+        const { email, password } = validatedCredentials.data;
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email,
-          },
-        });
+        const user = await getUserByEmail(email);
 
         if (!user) {
           console.log("User not found");
@@ -81,4 +84,9 @@ const config = {
   },
 } satisfies NextAuthConfig;
 
-export const { auth, signIn, signOut } = NextAuth(config);
+export const {
+  auth,
+  signIn,
+  signOut,
+  handlers: { GET, POST },
+} = NextAuth(config);

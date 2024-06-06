@@ -3,14 +3,18 @@
 import prisma from "@/lib/db";
 import { sleep } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
-import { petFormSchema, petIdSchema } from "@/lib/validations";
+import { authFormSchema, petFormSchema, petIdSchema } from "@/lib/validations";
 import { auth, signIn, signOut } from "@/lib/auth";
 import bcrypt from "bcryptjs";
-import { redirect } from "next/navigation";
-import { checkAuth } from "@/lib/server-util";
+import { checkAuth, getPetById } from "@/lib/server-util";
 
 // --- User Actions ---
-export async function logIn(formData: FormData) {
+export async function logIn(formData: unknown) {
+  if (!(formData instanceof FormData)) {
+    return {
+      message: "Invalid form data",
+    };
+  }
   await signIn("credentials", formData);
 }
 
@@ -18,15 +22,32 @@ export async function logOut() {
   await signOut({ redirectTo: "/" });
 }
 
-export async function signUp(formData: FormData) {
-  const hashedPassword = await bcrypt.hash(
-    formData.get("password") as string,
-    10
-  );
+export async function signUp(formData: unknown) {
+  // check if formData is a FormData object
+  if (!(formData instanceof FormData)) {
+    return {
+      message: "Invalid form data",
+    };
+  }
+
+  // convert FormData object to object
+  const formDataEntries = Object.fromEntries(formData.entries());
+
+  // validate form data
+  const validatedFormData = authFormSchema.safeParse(formDataEntries);
+
+  if (!validatedFormData.success) {
+    return {
+      message: "Invalid form data",
+    };
+  }
+  const { email, password } = validatedFormData.data;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.create({
     data: {
-      email: formData.get("email") as string,
+      email,
       hashedPassword,
     },
   });
@@ -84,10 +105,7 @@ export async function editPet(petId: unknown, newPetData: unknown) {
   }
 
   // authorization check (user owns the pet)
-  const pet = await prisma.pet.findUnique({
-    where: { id: validatedPetId.data },
-    select: { userId: true },
-  });
+  const pet = await getPetById(validatedPetId.data);
 
   if (!pet) {
     return {
@@ -129,10 +147,7 @@ export async function deletePet(petId: unknown) {
   }
 
   // authorization check (user owns the pet)
-  const pet = await prisma.pet.findUnique({
-    where: { id: validatedPetId.data },
-    select: { userId: true },
-  });
+  const pet = await getPetById(validatedPetId.data);
 
   if (!pet) {
     return {
