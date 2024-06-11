@@ -71,11 +71,6 @@ export default function PetForm({
           }
         }
       }}
-      onAbort={(e) => {
-        if (prevImageURL !== imageURL) {
-          deleteFile(imageURL);
-        }
-      }}
     >
       <div className="space-y-3">
         <Label htmlFor="image">Image</Label>
