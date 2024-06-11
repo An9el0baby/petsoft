@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { sleep } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { authFormSchema, petFormSchema, petIdSchema } from "@/lib/validations";
 import { auth, signIn, signOut } from "@/lib/auth";
