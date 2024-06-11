@@ -10,6 +10,10 @@ import { Prisma } from "@prisma/client";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
+import { UTApi } from "uploadthing/server";
+
+const utapi = new UTApi();
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // --- User Actions ---
@@ -235,4 +239,18 @@ export async function createPaymentSession() {
 
   // redirect user to checkout page
   redirect(checkoutSession.url);
+}
+
+// --- Image Actions ---
+// url https://utfs.io/f/4a83c00b-426b-4251-a28c-9208f20f464a-jlo1ag.jpeg
+// file id  4a83c00b-426b-4251-a28c-9208f20f464a-jlo1ag.jpeg
+export async function deleteFile(url: string) {
+  const fileId = url.split("/").pop();
+  try {
+    await utapi.deleteFiles(fileId!);
+  } catch (error) {
+    return {
+      message: "Failed to delete file",
+    };
+  }
 }

@@ -10,7 +10,8 @@ import { DEFAULT_PET_IMAGE } from "@/lib/constants";
 import { petFormSchema, petFormType } from "@/lib/validations";
 import Image from "next/image";
 import { UploadButton } from "@/lib/uploadthing";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { deleteFile } from "@/actions/actions";
 
 export default function PetForm({
   actionType,
@@ -47,6 +48,8 @@ export default function PetForm({
       : DEFAULT_PET_IMAGE
   );
 
+  const [prevImageURL, setPrevImageURL] = useState(imageURL);
+
   return (
     <form
       className="flex flex-col"
@@ -63,6 +66,14 @@ export default function PetForm({
           handleAddPet(petData);
         } else if (actionType === "edit") {
           handleEditPet(selectedPet!.id, petData);
+          if (prevImageURL !== imageURL) {
+            deleteFile(prevImageURL);
+          }
+        }
+      }}
+      onAbort={(e) => {
+        if (prevImageURL !== imageURL) {
+          deleteFile(imageURL);
         }
       }}
     >
