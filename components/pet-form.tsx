@@ -8,6 +8,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DEFAULT_PET_IMAGE } from "@/lib/constants";
 import { petFormSchema, petFormType } from "@/lib/validations";
+import Image from "next/image";
+import { UploadButton } from "@/lib/uploadthing";
+import { useState } from "react";
 
 export default function PetForm({
   actionType,
@@ -22,6 +25,7 @@ export default function PetForm({
     register,
     trigger,
     getValues,
+    setValue,
     formState: { isSubmitting, errors },
   } = useForm<petFormType>({
     resolver: zodResolver(petFormSchema),
@@ -37,6 +41,12 @@ export default function PetForm({
         : undefined,
   });
 
+  const [imageURL, setImageURL] = useState(
+    actionType === "edit"
+      ? selectedPet?.imageUrl || DEFAULT_PET_IMAGE
+      : DEFAULT_PET_IMAGE
+  );
+
   return (
     <form
       className="flex flex-col"
@@ -47,7 +57,7 @@ export default function PetForm({
         onFormSubmission();
 
         const petData = getValues();
-        petData.imageUrl = petData.imageUrl || DEFAULT_PET_IMAGE;
+        petData.imageUrl = imageURL || DEFAULT_PET_IMAGE;
 
         if (actionType === "add") {
           handleAddPet(petData);
@@ -57,6 +67,28 @@ export default function PetForm({
       }}
     >
       <div className="space-y-3">
+        <Label htmlFor="image">Image</Label>
+        <div className="flex flex-row items-center justify-around">
+          <Image
+            src={imageURL}
+            alt="Selected Pet Image"
+            height={75}
+            width={75}
+            className="h-[75px] w-[75px] rounded-full object-cover"
+          />
+          <UploadButton
+            endpoint="imageUploader"
+            onClientUploadComplete={(res) => {
+              // Do something with the response
+              setImageURL(res[0].url);
+              setValue("imageUrl", res[0].url);
+            }}
+            onUploadError={(error: Error) => {
+              // Do something with the error.
+              alert(`ERROR! ${error.message}`);
+            }}
+          />
+        </div>
         <div className="space-y-1">
           <Label htmlFor="name">Name</Label>
           <Input id="name" {...register("name")} />
@@ -69,13 +101,13 @@ export default function PetForm({
             <p className="text-red-500">{errors.ownerName.message}</p>
           )}
         </div>
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <Label htmlFor="image">Image URL</Label>
           <Input id="image" {...register("imageUrl")} />
           {errors.imageUrl && (
             <p className="text-red-500">{errors.imageUrl.message}</p>
           )}
-        </div>
+        </div> */}
         <div className="space-y-1">
           <Label htmlFor="age">Age</Label>
           <Input id="age" {...register("age")} />
